@@ -11,22 +11,21 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 
-const PREFIX = "feat:";
-const WHEN = "ship it Friday";
-const CONFESSION = "I fixed the bug by deleting prod";
-const PUNCHLINE = "all tests pass (there are none left)";
-const SIGN_OFF = "🚀";
+// Segments of the joke, in commit order. Keeping them as named parts
+// (rather than one pasted string) is what lets the program assemble
+// the line — and lets a reader see where the punchline sits.
+const SEGMENTS = {
+  prefix: "feat:",
+  when: "ship it Friday",
+  dash: "—",
+  confession: "I fixed the bug by deleting prod,",
+  punchline: "all tests pass (there are none left)",
+  signOff: "🚀",
+} as const;
 
 function buildCommitMessage(): string {
-  const parts = [
-    PREFIX,
-    WHEN,
-    "—",
-    `${CONFESSION},`,
-    PUNCHLINE,
-    SIGN_OFF,
-  ];
-  return parts.join(" ");
+  const { prefix, when, dash, confession, punchline, signOff } = SEGMENTS;
+  return [prefix, when, dash, confession, punchline, signOff].join(" ");
 }
 
 function main(): void {
@@ -38,6 +37,11 @@ function main(): void {
   }
   if (line.includes("\n")) {
     throw new Error("commit message must be a single line");
+  }
+  // It must still read as a Friday commit from the agent: the prefix,
+  // the Friday marker and the punchline all have to survive assembly.
+  if (!line.startsWith("feat:") || !line.includes("Friday")) {
+    throw new Error("commit message lost its Friday framing");
   }
 
   // The harness provides /output; fall back to a local ./output so the
